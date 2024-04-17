@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::sync::Arc;
+use std::rc::Rc;
 
 use super::log::install_file_logger;
 use super::Learner;

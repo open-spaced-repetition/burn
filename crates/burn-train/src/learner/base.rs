@@ -27,7 +27,7 @@ pub struct Learner<LC: LearnerComponents> {
     pub(crate) interrupter: TrainingInterrupter,
     pub(crate) early_stopping: Option<Box<dyn EarlyStoppingStrategy>>,
     pub(crate) event_processor: LC::EventProcessor,
-    pub(crate) event_store: Arc<EventStoreClient>,
+    pub(crate) event_store: Rc<EventStoreClient>,
     pub(crate) summary: Option<LearnerSummaryConfig>,
 }
 
