@@ -11,7 +11,7 @@ wasm-bindgen = { workspace = true }
 log = { workspace = true }
 console_error_panic_hook = "0.1.7"
 console_log = { version = "1", features = ["color"] }
-burn = { path = "../../../burn", default-features = false, features = [
+burn = { path = "../../../crates/burn", default-features = false, features = [
   "autodiff",
   "train",
   "ndarray",

@@ -4,6 +4,7 @@ use burn::{
     tensor::{backend::Backend, Data, ElementConversion, Int, Tensor},
 };
 
+#[derive(Clone)]
 pub struct MNISTBatcher<B: Backend> {
     device: B::Device,
 }

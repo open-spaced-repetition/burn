@@ -113,13 +113,13 @@ pub fn train<B: AutodiffBackend>(
     let dataloader_train = DataLoaderBuilder::new(batcher_train)
         .batch_size(config.batch_size)
         .shuffle(config.seed)
-        .num_workers(config.num_workers)
+        // .num_workers(config.num_workers)
         .build(MNISTDataset::new(train_labels, train_images, train_lengths));
 
     let dataloader_test = DataLoaderBuilder::new(batcher_valid)
         .batch_size(config.batch_size)
         .shuffle(config.seed)
-        .num_workers(config.num_workers)
+        // .num_workers(config.num_workers)
         .build(MNISTDataset::new(test_labels, test_images, test_lengths));
 
     let learner = LearnerBuilder::new(artifact_dir)
