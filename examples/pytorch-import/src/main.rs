@@ -1,12 +1,13 @@
 use std::env::args;
 use std::path::Path;
 
-use burn::backend::ndarray::NdArray;
-use burn::record::{FullPrecisionSettings, NamedMpkFileRecorder, Recorder};
-use burn::tensor::Tensor;
-
-use burn::data::dataset::vision::MNISTDataset;
-use burn::data::dataset::Dataset;
+use burn::{
+    backend::ndarray::NdArray,
+    data::dataset::{vision::MnistDataset, Dataset},
+    module::Module,
+    record::{FullPrecisionSettings, NamedMpkFileRecorder, Recorder},
+    tensor::Tensor,
+};
 
 use model::Model;
 
@@ -39,10 +40,10 @@ fn main() {
         .expect("Failed to decode state");
 
     // Create a new model and load the state
-    let model: Model<Backend> = Model::new_with(record);
+    let model: Model<Backend> = Model::init(&device).load_record(record);
 
     // Load the MNIST dataset and get an item
-    let dataset = MNISTDataset::test();
+    let dataset = MnistDataset::test();
     let item = dataset.get(image_index).unwrap();
 
     // Create a tensor from the image data

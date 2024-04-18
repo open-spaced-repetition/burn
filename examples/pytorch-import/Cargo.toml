@@ -4,10 +4,10 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 name = "pytorch-import"
 publish = false
-version = "0.12.1"
+version = "0.13.1"
 
 [dependencies]
-burn = { path = "../../burn", features = [
+burn = { path = "../../crates/burn", features = [
     "ndarray",
     "dataset",
     "vision",
@@ -18,7 +18,7 @@ model = { path = "./model" }
 
 [build-dependencies]
 model = { path = "./model" }
-burn = { path = "../../burn", features = ["ndarray"] }
-burn-import = { path = "../../burn-import", features = [
+burn = { path = "../../crates/burn", features = ["ndarray"] }
+burn-import = { path = "../../crates/burn-import", features = [
     "pytorch",
 ], default-features = false }

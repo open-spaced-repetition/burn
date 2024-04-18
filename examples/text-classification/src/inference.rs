@@ -10,10 +10,9 @@ use crate::{
     training::ExperimentConfig,
 };
 use burn::{
-    config::Config,
     data::dataloader::batcher::Batcher,
+    prelude::*,
     record::{CompactRecorder, Recorder},
-    tensor::backend::Backend,
 };
 use std::sync::Arc;
 
@@ -54,7 +53,8 @@ pub fn infer<B: Backend, D: TextClassificationDataset + 'static>(
         tokenizer.vocab_size(),
         config.max_seq_length,
     )
-    .init_with::<B>(record); // Initialize model with loaded weights
+    .init(&device)
+    .load_record(record); // Initialize model with loaded weights
 
     // Run inference on the given text samples
     println!("Running inference ...");
