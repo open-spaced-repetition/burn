@@ -28,7 +28,7 @@ metrics = ["burn-train?/metrics"]
 # Useful when targeting WASM and not using WGPU.
 wasm-sync = ["burn-core/wasm-sync"]
 
-browser = ["burn-train/browser"]
+browser = ["burn-core/browser"]
 
 # Datasets
 dataset = ["burn-core/dataset"]

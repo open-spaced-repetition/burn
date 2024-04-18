@@ -30,3 +30,5 @@ extern crate alloc;
 /// Network utilities.
 #[cfg(feature = "network")]
 pub mod network;
+
+pub mod util;

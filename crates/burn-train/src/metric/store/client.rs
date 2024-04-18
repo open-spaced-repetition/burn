@@ -1,6 +1,6 @@
 use super::EventStore;
 use super::{Aggregate, Direction, Event, Split};
-use crate::util;
+use burn_common::util;
 use std::sync::mpsc;
 
 /// Type that allows to communicate with an [event store](EventStore).

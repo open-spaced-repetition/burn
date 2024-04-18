@@ -67,6 +67,7 @@ sqlite-bundled = ["burn-dataset?/sqlite-bundled"]
 vision = ["burn-dataset?/vision", "burn-common/network"]
 
 wasm-sync = ["burn-tensor/wasm-sync", "burn-common/wasm-sync"]
+browser = ["burn-common/browser"]
 
 # Backend
 autodiff = ["burn-autodiff"]

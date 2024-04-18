@@ -6,6 +6,7 @@ use crate::{
     tensor::{AutodiffTensor, NodeRefCount},
     NodeID,
 };
+use burn_common::util;
 use burn_tensor::backend::Backend;
 use std::sync::mpsc::Sender;
 
@@ -36,7 +37,7 @@ impl ChannelClient {
     fn init() -> Self {
         let (sender, receiver) = std::sync::mpsc::channel();
 
-        std::thread::spawn(move || {
+        util::spawn(move || {
             let mut server = AutodiffServer::default();
 
             for message in receiver.iter() {

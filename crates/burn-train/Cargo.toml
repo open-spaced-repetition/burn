@@ -15,16 +15,9 @@ default = ["metrics", "tui", "burn-core/default", "burn-core/dataset"]
 doc = ["default"]
 metrics = ["nvml-wrapper", "sysinfo", "systemstat"]
 tui = ["ratatui", "crossterm"]
-browser = [
-  "js-sys",
-  "web-sys",
-  "wasm-bindgen",
-  "wasm-bindgen-rayon",
-  "rayon",
-  "burn-core/std",
-]
 
 [dependencies]
+burn-common = { path = "../burn-common", version = "0.13.1" }
 burn-core = { path = "../burn-core", version = "0.13.1", default-features = false, features = [
   "dataset",
 ] }
@@ -46,18 +39,6 @@ crossterm = { workspace = true, optional = true }
 # Utilities
 derive-new = { workspace = true }
 serde = { workspace = true, features = ["std", "derive"] }
-
-js-sys = { version = "0.3.64", optional = true }
-web-sys = { version = "0.3.64", optional = true, features = [
-  "Worker",
-  "WorkerOptions",
-  "WorkerType",
-  "MessageEvent",
-  "ErrorEvent",
-] }
-wasm-bindgen = { workspace = true, optional = true }
-wasm-bindgen-rayon = { version = "1.0.3", optional = true }
-rayon = { workspace = true, optional = true }
 
 [dev-dependencies]
 burn-ndarray = { path = "../burn-ndarray", version = "0.13.1" }

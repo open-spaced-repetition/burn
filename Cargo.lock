@@ -396,12 +396,17 @@ dependencies = [
  "derive-new",
  "getrandom",
  "indicatif",
+ "js-sys",
  "rand",
+ "rayon",
  "reqwest",
  "serde",
  "spin",
  "tokio",
  "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-rayon",
+ "web-sys",
  "web-time",
 ]
 
@@ -626,24 +631,20 @@ dependencies = [
 name = "burn-train"
 version = "0.13.1"
 dependencies = [
+ "burn-common",
  "burn-core",
  "burn-ndarray",
  "crossterm",
  "derive-new",
- "js-sys",
  "log",
  "nvml-wrapper",
  "ratatui",
- "rayon",
  "serde",
  "sysinfo",
  "systemstat",
  "tracing-appender",
  "tracing-core",
  "tracing-subscriber",
- "wasm-bindgen",
- "wasm-bindgen-rayon",
- "web-sys",
 ]
 
 [[package]]
