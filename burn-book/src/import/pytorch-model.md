@@ -7,13 +7,18 @@ you can import them into Burn. Burn supports importing PyTorch model weights wit
 extension. Compared to ONNX models, `.pt` files only contain the weights of the model, so you will
 need to reconstruct the model architecture in Burn.
 
+Here in this document we will show the full workflow of exporting a PyTorch model and importing it.
+Also you can refer to this
+[Transitioning From PyTorch to Burn](https://dev.to/laggui/transitioning-from-pytorch-to-burn-45m)
+tutorial on importing a more complex model.
+
 ## How to export a PyTorch model
 
 If you have a PyTorch model that you want to import into Burn, you will need to export it first,
 unless you are using a pre-trained published model. To export a PyTorch model, you can use the
 `torch.save` function.
 
-Here is an example of how to export a PyTorch model:
+The following is an example of how to export a PyTorch model:
 
 ```python
 import torch
@@ -30,7 +35,7 @@ class Net(nn.Module):
         x = self.conv2(x)
         return x
 
-def main():
+if __name__ == "__main__":
     torch.manual_seed(42)  # To make it reproducible
     model = Net().to(torch.device("cpu"))
     model_weights = model.state_dict()
@@ -40,7 +45,7 @@ def main():
 Use [Netron](https://github.com/lutzroeder/netron) to view the exported model. You should see
 something like this:
 
-![image alt >](./conv2d.svg)
+![image alt>](./conv2d.svg)
 
 ## How to import a PyTorch model
 
@@ -48,9 +53,8 @@ something like this:
 
    ```rust
    use burn::{
-       module::Module,
        nn::conv::{Conv2d, Conv2dConfig},
-       tensor::{backend::Backend, Tensor},
+       prelude::*,
    };
 
    #[derive(Module, Debug)]
@@ -60,13 +64,13 @@ something like this:
    }
 
    impl<B: Backend> Net<B> {
-       /// Create a new model from the given record.
-       pub fn new_with(record: NetRecord<B>) -> Self {
+       /// Create a new model.
+       pub fn init(device: &B::Device) -> Self {
            let conv1 = Conv2dConfig::new([2, 2], [2, 2])
-               .init_with(record.conv1);
+               .init(device);
            let conv2 = Conv2dConfig::new([2, 2], [2, 2])
                .with_bias(false)
-               .init_with(record.conv2);
+               .init(device);
            Self { conv1, conv2 }
        }
 
@@ -96,7 +100,7 @@ something like this:
            .load("./conv2d.pt".into(), &device)
            .expect("Should decode state successfully");
 
-       let model = model::Net::<Backend>::new_with(record);
+       let model = model::Net::<Backend>::init(&device).load_record(record);
    }
    ```
 
@@ -135,17 +139,61 @@ something like this:
            .load("./MY_FILE_OUTPUT_PATH".into(), &device)
            .expect("Should decode state successfully");
 
-       Net::<Backend>::new_with(record)
+       Net::<Backend>::init(&device).load_record(record)
    }
    ```
+
+## Extract Configuration
+
+In some cases, models may require additional configuration settings, which are often included in a
+`.pt` file during export. The `config_from_file` function from the `burn-import` cargo package
+allows for the extraction of these configurations directly from the `.pt` file. The extracted
+configuration can then be used to initialize the model in Burn. Here is an example of how to extract
+the configuration from a `.pt` file:
+
+```rust
+use std::collections::HashMap;
+
+use burn::config::Config;
+use burn_import::pytorch::config_from_file;
+
+#[derive(Debug, Config)]
+struct NetConfig {
+    n_head: usize,
+    n_layer: usize,
+    d_model: usize,
+    // Candle's pickle has a bug with float serialization
+    // https://github.com/huggingface/candle/issues/1729
+    // some_float: f64,
+    some_int: i32,
+    some_bool: bool,
+    some_str: String,
+    some_list_int: Vec<i32>,
+    some_list_str: Vec<String>,
+    // Candle's pickle has a bug with float serialization
+    // https://github.com/huggingface/candle/issues/1729
+    // some_list_float: Vec<f64>,
+    some_dict: HashMap<String, String>,
+}
+
+fn main() {
+    let path = "weights_with_config.pt";
+    let top_level_key = Some("my_config");
+    let config: NetConfig = config_from_file(path, top_level_key).unwrap();
+    println!("{:#?}", config);
+
+    // After extracting, it's recommended you save it as a json file.
+    config.save("my_config.json").unwrap();
+}
+```
 
 ## Troubleshooting
 
 ### Adjusting the source model architecture
 
 If your target model differs structurally from the model you exported, `PyTorchFileRecorder` allows
-changing the attribute names and the order of the attributes. For example, if you exported a model
-with the following structure:
+you to change the attribute names and the order of the attributes. For example, if you exported a
+model with the following structure:
 
 ```python
 class ConvModule(nn.Module):
@@ -182,12 +230,13 @@ pub struct Net<B: Backend> {
 Which produces the following weights structure (viewed in
 [Netron](https://github.com/lutzroeder/netron)):
 
-![image alt >](./key_remap.svg)
+![image alt>](./key_remap.svg)
 
 You can use the `PyTorchFileRecorder` to change the attribute names and the order of the attributes
 by specifying a regular expression (See
-[regex::Regex::replace](https://docs.rs/regex/latest/regex/struct.Regex.html#method.replace)) to
-match the attribute name and a replacement string in `LoadArgs`:
+[regex::Regex::replace](https://docs.rs/regex/latest/regex/struct.Regex.html#method.replace) and
+[try it online](https://rregex.dev/?version=1.10&method=replace)) to match the attribute name and a
+replacement string in `LoadArgs`:
 
 ```rust
 let device = Default::default();
@@ -199,7 +248,83 @@ let record = PyTorchFileRecorder::<FullPrecisionSettings>::default()
     .load(load_args, &device)
     .expect("Should decode state successfully");
 
-let model = Net::<Backend>::new_with(record);
+let model = Net::<Backend>::init(&device).load_record(record);
+```
+
+### Printing the source model keys and tensor information
+
+If you are unsure about the keys in the source model, you can print them using the following code:
+
+```rust
+let device = Default::default();
+let load_args = LoadArgs::new("tests/key_remap/key_remap.pt".into())
+    // Remove "conv" prefix, e.g. "conv.conv1" -> "conv1"
+    .with_key_remap("conv\\.(.*)", "$1")
+    .with_debug_print(); // Print the keys and remapped keys
+
+let record = PyTorchFileRecorder::<FullPrecisionSettings>::default()
+    .load(load_args, &device)
+    .expect("Should decode state successfully");
+
+let model = Net::<Backend>::init(&device).load_record(record);
+```
+
+Here is an example of the output:
+
+```text
+Debug information of keys and tensor shapes:
+---
+Original Key: conv.conv1.bias
+Remapped Key: conv1.bias
+Shape: [2]
+Dtype: F32
+---
+Original Key: conv.conv1.weight
+Remapped Key: conv1.weight
+Shape: [2, 2, 2, 2]
+Dtype: F32
+---
+Original Key: conv.conv2.weight
+Remapped Key: conv2.weight
+Shape: [2, 2, 2, 2]
+Dtype: F32
+---
+```
+
+### Non-contiguous indices in the source model
+
+Sometimes the indices of the source model are non-contiguous. For example, the source model has:
+
+```
+"model.ax.0.weight",
+"model.ax.0.bias",
+"model.ax.2.weight",
+"model.ax.2.bias",
+"model.ax.4.weight",
+"model.ax.4.bias",
+"model.ax.6.weight",
+"model.ax.6.bias",
+"model.ax.8.weight",
+"model.ax.8.bias",
+```
+
+This may occur when `model.ax` attribute (in the above example) uses `Sequential` to define the
+layers and the skipped items do not have weight tensors, such as a `ReLU` layer. PyTorch simply
+skips the layers without weight tensors, resulting in non-contiguous indices. In this case,
+PyTorchFileRecorder automatically corrects the indices to be contiguous preserving the order of the
+weights resulting in:
+
+```
+"model.ax.0.weight",
+"model.ax.0.bias",
+"model.ax.1.weight",
+"model.ax.1.bias",
+"model.ax.2.weight",
+"model.ax.2.bias",
+"model.ax.3.weight",
+"model.ax.3.bias",
+"model.ax.4.weight",
+"model.ax.4.bias",
 ```
 
 ### Loading the model weights to a partial model
@@ -208,7 +333,77 @@ let model = Net::<Backend>::new_with(record);
 with both an encoder and a decoder, it's possible to load only the encoder weights. This is done by
 defining the encoder in Burn, allowing the loading of its weights while excluding the decoder's.
 
+### Specifying the top-level key for state_dict
+
+Sometimes the
+[`state_dict`](https://pytorch.org/tutorials/beginner/saving_loading_models.html#what-is-a-state-dict)
+is nested under a top-level key along with other metadata as in a
+[general checkpoint](https://pytorch.org/tutorials/beginner/saving_loading_models.html#saving-loading-a-general-checkpoint-for-inference-and-or-resuming-training).
+For example, the `state_dict` of the whisper model is nested under `model_state_dict` key. In this
+case, you can specify the top-level key in `LoadArgs`:
+
+```rust
+let device = Default::default();
+let load_args = LoadArgs::new("tiny.en.pt".into())
+    .with_top_level_key("my_state_dict");
+
+let record = PyTorchFileRecorder::<FullPrecisionSettings>::default()
+    .load(load_args, &device)
+    .expect("Should decode state successfully")
+```
+
+### Models containing enum modules
+
+Burn supports models containing enum modules with new-type variants (tuple with one item). Importing
+weights for such models is automatically supported by the PyTorchFileRecorder. However, it should be
+noted that since the source weights file does not contain the enum variant information, the enum
+variant is picked based on the enum variant type. Let's consider the following example:
+
+```rust
+#[derive(Module, Debug)]
+pub enum Conv<B: Backend> {
+    DwsConv(DwsConv<B>),
+    Conv(Conv2d<B>),
+}
+
+#[derive(Module, Debug)]
+pub struct DwsConv<B: Backend> {
+    dconv: Conv2d<B>,
+    pconv: Conv2d<B>,
+}
+
+#[derive(Module, Debug)]
+pub struct Net<B: Backend> {
+    conv: Conv<B>,
+}
+```
+
+If the source weights file contains weights for `DwsConv`, such as the following keys:
+
+```text
+---
+Key: conv.dconv.bias
+Shape: [2]
+Dtype: F32
+---
+Key: conv.dconv.weight
+Shape: [2, 1, 3, 3]
+Dtype: F32
+---
+Key: conv.pconv.bias
+Shape: [2]
+Dtype: F32
+---
+Key: conv.pconv.weight
+Shape: [2, 2, 1, 1]
+Dtype: F32
+```
+
+The weights will be imported into the `DwsConv` variant of the `Conv` enum module.
+
+If the variant types are identical, then the first variant is picked. Generally, it won't be a
+problem since the variant types are usually different.
+
 ## Current known issues
 
-1. [Candle's pickle library does not currently function on Windows due to a Candle bug](https://github.com/tracel-ai/burn/issues/1178).
-2. [Candle's pickle does not currently unpack boolean tensors](https://github.com/tracel-ai/burn/issues/1179).
+1. [Candle's pickle does not currently unpack boolean tensors](https://github.com/tracel-ai/burn/issues/1179).
