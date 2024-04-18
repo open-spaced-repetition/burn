@@ -16,7 +16,7 @@ default = [
     "burn-candle?/default",
     "burn-common/default",
     "burn-dataset?/default",
-    "burn-fusion?/default",
+    # "burn-fusion?/default",
     "burn-ndarray?/default",
     "burn-tch?/default",
     "burn-tensor/default",
