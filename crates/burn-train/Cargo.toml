@@ -17,8 +17,8 @@ metrics = ["nvml-wrapper", "sysinfo", "systemstat"]
 tui = ["ratatui", "crossterm"]
 
 [dependencies]
-burn-common = { path = "../burn-common", version = "0.13.1" }
-burn-core = { path = "../burn-core", version = "0.13.1", default-features = false, features = [
+burn-common = { path = "../burn-common", version = "0.13.2" }
+burn-core = { path = "../burn-core", version = "0.13.2", default-features = false, features = [
   "dataset",
 ] }
 
@@ -41,7 +41,7 @@ derive-new = { workspace = true }
 serde = { workspace = true, features = ["std", "derive"] }
 
 [dev-dependencies]
-burn-ndarray = { path = "../burn-ndarray", version = "0.13.1" }
+burn-ndarray = { path = "../burn-ndarray", version = "0.13.2" }
 
 [package.metadata.docs.rs]
 features = ["doc"]
