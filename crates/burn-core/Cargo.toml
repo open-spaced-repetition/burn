@@ -82,6 +82,8 @@ std = [
 vision = ["burn-dataset?/vision", "burn-common/network"]
 audio = ["burn-dataset?/audio"]
 
+browser = ["burn-common/browser"]
+
 # Backend
 autodiff = ["burn-autodiff"]
 fusion = ["burn-wgpu?/fusion", "burn-cuda?/fusion"]

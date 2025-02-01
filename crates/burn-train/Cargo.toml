@@ -12,15 +12,16 @@ documentation = "https://docs.rs/burn-train"
 version.workspace = true
 
 [features]
-default = ["metrics", "tui"]
+default = ["metrics", "tui", "burn-core/default", "burn-core/dataset"]
 doc = ["default"]
-metrics = ["nvml-wrapper", "sysinfo", "systemstat"]
+metrics = ["sysinfo", "systemstat"]
 tui = ["ratatui"]
 
 [dependencies]
+burn-common = { path = "../burn-common", version = "0.16.0" }
 burn-core = { path = "../burn-core", version = "0.16.0", features = [
     "dataset",
-    "std",
+  "std",
 ], default-features = false }
 
 log = { workspace = true }
@@ -29,7 +30,6 @@ tracing-appender = { workspace = true }
 tracing-core = { workspace = true }
 
 # Metrics
-nvml-wrapper = { workspace = true, optional = true }
 sysinfo = { workspace = true, optional = true }
 systemstat = { workspace = true, optional = true }
 
