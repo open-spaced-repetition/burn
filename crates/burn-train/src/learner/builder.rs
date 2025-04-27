@@ -11,7 +11,7 @@ use crate::components::LearnerComponentsMarker;
 use crate::learner::base::TrainingInterrupter;
 use crate::learner::EarlyStoppingStrategy;
 use crate::logger::{FileMetricLogger, MetricLogger};
-use crate::metric::processor::{AsyncProcessor, FullEventProcessor, ItemLazy, Metrics};
+use crate::metric::processor::{FullEventProcessor, ItemLazy, Metrics};
 use crate::metric::store::{Aggregate, Direction, EventStoreClient, LogEventStore, Split};
 use crate::metric::{Adaptor, LossMetric, Metric};
 use crate::renderer::{default_renderer, MetricsRenderer};
@@ -302,7 +302,7 @@ where
             AsyncCheckpointer<M::Record, B>,
             AsyncCheckpointer<O::Record, B>,
             AsyncCheckpointer<S::Record<B>, B>,
-            AsyncProcessor<FullEventProcessor<T, V>>,
+            FullEventProcessor<T, V>,
             Box<dyn CheckpointingStrategy>,
         >,
     >
@@ -328,11 +328,7 @@ where
         }
 
         let event_store = Arc::new(EventStoreClient::new(self.event_store));
-        let event_processor = AsyncProcessor::new(FullEventProcessor::new(
-            self.metrics,
-            renderer,
-            event_store.clone(),
-        ));
+        let event_processor = FullEventProcessor::new(self.metrics, renderer, event_store.clone());
 
         let checkpointer = self.checkpointers.map(|(model, optim, scheduler)| {
             LearnerCheckpointer::new(model, optim, scheduler, self.checkpointer_strategy)

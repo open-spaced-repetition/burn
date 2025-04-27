@@ -6,7 +6,6 @@ pub mod store;
 mod acc;
 mod auroc;
 mod base;
-#[cfg(feature = "metrics")]
 mod confusion_stats;
 #[cfg(feature = "metrics")]
 mod cpu_temp;
@@ -33,7 +32,6 @@ mod top_k_acc;
 pub use acc::*;
 pub use auroc::*;
 pub use base::*;
-#[cfg(feature = "metrics")]
 pub use confusion_stats::ConfusionStatsInput;
 #[cfg(feature = "metrics")]
 pub use cpu_temp::*;
@@ -57,7 +55,6 @@ pub use recall::*;
 #[cfg(feature = "metrics")]
 pub use top_k_acc::*;
 
-#[cfg(feature = "metrics")]
 pub(crate) mod classification;
 pub(crate) mod processor;
 
