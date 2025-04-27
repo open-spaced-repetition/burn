@@ -66,6 +66,8 @@ tui = ["burn-train?/tui"]
 ##  Includes system info metrics (CPU/GPU usage, etc)
 metrics = ["burn-train?/sys-metrics"]
 
+browser = ["burn-core/browser"]
+
 # Datasets
 dataset = ["burn-core/dataset"]
 

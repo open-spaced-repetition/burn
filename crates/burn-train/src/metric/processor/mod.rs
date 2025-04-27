@@ -1,4 +1,3 @@
-mod async_wrapper;
 mod base;
 mod full;
 mod metrics;
@@ -11,7 +10,6 @@ pub(crate) use metrics::*;
 #[cfg(test)]
 pub(crate) use minimal::*;
 
-pub use async_wrapper::AsyncProcessor;
 
 #[cfg(test)]
 pub(crate) mod test_utils {

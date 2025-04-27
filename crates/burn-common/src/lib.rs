@@ -20,6 +20,8 @@ extern crate alloc;
 #[cfg(feature = "network")]
 pub mod network;
 
+pub mod util;
+
 /// Parallel utilities.
 pub mod parallel;
 

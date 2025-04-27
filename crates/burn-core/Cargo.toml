@@ -48,6 +48,8 @@ std = [
 vision = ["burn-dataset?/vision", "burn-common/network"]
 audio = ["burn-dataset?/audio"]
 
+browser = ["burn-common/browser"]
+
 # Custom deserializer for Record that is helpful for importing data, such as PyTorch pt files.
 record-item-custom-serde = ["thiserror", "regex"]
 
